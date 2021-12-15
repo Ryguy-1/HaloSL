@@ -3,40 +3,90 @@ package generate_games;
 import java.util.ArrayList;
 import java.util.Random;
 
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.Writer;
+
 public class GenerateDataset {
 
     Random random = new Random();
     private int maxMovesUntilStalemate;
 
-    GenerateDataset(int numGames, int maxMovesUntilStalemate){
+    GenerateDataset(int numGames, int maxMovesUntilStalemate, int startIndex, int numGamesPerBatch){
         this.maxMovesUntilStalemate = maxMovesUntilStalemate;
         // Start Game Generation
-        generateGames(numGames);
+        generateGames(numGames, startIndex, numGamesPerBatch);
     }
 
-    private void generateGames(int numGames){
+    private void generateGames(int numGames, int startIndex, int numGamesPerBatch){
         System.out.println("Generating " + numGames + " games");
-        
-        //play out game
-        String[] moves = playGame();
-        // get winning case (last index in moves array)
-        String winningCase = moves[moves.length-1];
-        // remove winning case from moves array and create movesNew array
-        String[] movesNew = new String[moves.length-1];
-        for (int i = 0; i < moves.length-1; i++){
-            movesNew[i] = moves[i];
-        }
-        moves = movesNew;
+        // Nested Array: indices: 0 = boardString, 1 = resultString
+        ArrayList<String[]> boardsWithResults = new ArrayList<>();
+        for(int outer = startIndex*numGamesPerBatch; outer < numGames+(startIndex*numGamesPerBatch); outer++){
+            //play out game
+            String[] moves = playGame();
+            // get winning case (last index in moves array)
+            String winningCase = moves[moves.length-1];
+            // don't do anything if nobody won
+            if (!(winningCase.equals("c") || winningCase.equals("l"))){
+                outer--;
+                continue;
+            }
+            // remove winning case from moves array and create movesNew array
+            String[] movesNew = new String[moves.length-1];
+            for (int i = 0; i < moves.length-1; i++){
+                movesNew[i] = moves[i];
+            }
+            moves = movesNew;
 
 
-        // Variables: moves array, winningCase string
-        Runner.mainBoard.initializeNewBoard();
-        for (String move: moves){
-            Runner.mainBoard.mainPosition.fromToMove(move);
-            Runner.mainBoard.drawGameBoard(Runner.mainBoard.mainPosition.getCurrentBoard());
-            System.out.println("================================================================================");
+            // Variables: moves array, winningCase string
+            Runner.mainBoard.initializeNewBoard();
+            ArrayList<String> positionStrings = new ArrayList<>();
+            for (String move: moves){
+                String thisPosition = "";
+                Runner.mainBoard.mainPosition.fromToMove(move);
+                for (int i = 0; i < 12; i++){
+                    thisPosition += Runner.mainBoard.parseString(Runner.mainBoard.mainPosition.getCurrentBoard()[i]);
+                }
+                positionStrings.add(thisPosition);
+            }
+            // only add if isn't stalemat/draw
+            if (winningCase.equals("c") || winningCase.equals("l")){
+                for (String positionString: positionStrings){
+                    boardsWithResults.add(new String[]{positionString, winningCase});
+                }
+            }
+            if(outer % numGamesPerBatch == 0 && outer!=0){
+                System.out.println("Games Generated: " + outer);
+                saveBoardWithResultsToCsv(boardsWithResults, "batch" + outer/numGamesPerBatch +".csv");
+                boardsWithResults.clear();
+            }
         }
-        System.out.println("Winning Case: " + winningCase);
+
+    }
+
+    private void saveBoardWithResultsToCsv(ArrayList<String[]> boardsWithResults, String batchName){
+        // Save BoardsWithResults to CSV
+        String csv = "";
+        for (String[] boardWithResult: boardsWithResults){
+            csv += boardWithResult[0] + "," + boardWithResult[1] + "\n";
+        }
+        // Save to file
+        String fileName = batchName;
+        writeToFile(fileName, csv);
+    }
+
+    private void writeToFile(String fileName, String csv){
+        // Write to file
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("generate_games/.data/" + fileName), "utf-8"))) {
+                writer.write(csv);
+        } catch (IOException ex) {
+            // report
+            System.out.println("Could not write to file");
+        }
 
     }
 
@@ -104,8 +154,7 @@ public class GenerateDataset {
         return returnedArray;
     }
 
-
-    // Will give the network all of the next moves and ask it to see which ones gives the highest probability of winning
+    // Makes Random Move to Generate Dataset
     private String chooseMove(String[] availableMoves, ArrayList<String> masterMoves, char toMove){
         String chosenMove = availableMoves[random.nextInt(availableMoves.length)];
         return chosenMove;
@@ -113,12 +162,7 @@ public class GenerateDataset {
 
 
 
-    // Transfer Format = 769 bits per row -> 12 x 64 + 1 (12 per piece + 1 for who won)
-    // DO THIS NEXT -> MAY HAVE TO JUST IGNORE THE WORK I DID BELOW... AND CONVERT IN PYTHON INSTEAD BECAUSE THAT'S EASIER
-    // data goes from java to python. 
-    // in future for cyclical training: Python simply passes back which move to make after evaluating all of the moves through its algorithm.
-
-
+    // Transfer Format: See save_format.txt
 
 
     // (12, 8, 8)
