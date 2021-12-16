@@ -1,0 +1,2 @@
+Protocol:
+- Games Saved as a CSV of 768 bit strings and ('c') or ('l') to distinguish the winner

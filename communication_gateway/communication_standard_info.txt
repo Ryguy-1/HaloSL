@@ -1,0 +1,14 @@
+Java to Python Communication Protocol:
+- Needs: Send List of Board Representations Over and Get Index of Best Move
+- Solution: Single Line CSV representing each possible move with 768 bit string
+    - Parse in Python, maintaining order
+    - After Read Data, Python should Delete the Data as to not read it again
+    - Before reading again, must send message back to Java
+    - Keep reading until the document is not blank
+
+Python to Java Communication Protocol
+- Needs: Send Index of Best Move in Possible Moves back to Java for action
+- Solution: Send Single Number in file back to Java
+    - Parse in Java
+    - After Read Data, Java should Delete the Data as to not read it again
+    - Before reading again, should naturally poll for another move.

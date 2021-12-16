@@ -8,6 +8,9 @@ import java.io.OutputStreamWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Writer;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.FileReader;
 
 public class GenerateDataset {
 
@@ -106,7 +109,7 @@ public class GenerateDataset {
         GAMEPLAY: while (true){
             // Choose and Make Move
             String[] availableMoves = Runner.search.getPossibleMovesByCasing(Runner.mainBoard.mainPosition, toMove);
-            String chosenMove = chooseMove(availableMoves, masterMoves, toMove);
+            String chosenMove = chooseMove(availableMoves, toMove);
             Runner.mainBoard.mainPosition.fromToMove(chosenMove);
             masterMoves.add(chosenMove);
             totalMoves++;
@@ -155,12 +158,72 @@ public class GenerateDataset {
     }
 
     // Makes Random Move to Generate Dataset
-    private String chooseMove(String[] availableMoves, ArrayList<String> masterMoves, char toMove){
+    private String chooseMove(String[] availableMoves, char toMove){
         String chosenMove = availableMoves[random.nextInt(availableMoves.length)];
         return chosenMove;
     }
 
+    public static String chooseMoveCNN(String[] availableMoves, char toMove){
+        String java_to_python = "communication_gateway/java_to_python.txt";
+        String python_to_java = "communication_gateway/python_to_java.txt";
 
+        // Send Moves to Python
+        Position[] movedPositions = new Position[availableMoves.length];
+        for (int i = 0; i < availableMoves.length; i++){
+            Position newPos = Runner.mainBoard.mainPosition.getPositionCopy();
+            newPos.fromToMove(availableMoves[i]);
+            movedPositions[i] = newPos;
+        }
+
+        // Convert Position Current Boards to String
+        String[] positionStrings = new String[movedPositions.length];
+        for (int i = 0; i < movedPositions.length; i++){
+            String thisPosition = "";
+            for (int j = 0; j < 12; j++){
+                thisPosition += Runner.mainBoard.parseString(movedPositions[i].getCurrentBoard()[j]);
+            }
+            positionStrings[i] = thisPosition;
+        }
+
+        // Convert positionStrings to Single Column CSV
+        String csv = "";
+        for (String positionString: positionStrings){
+            csv += positionString + "," +toMove + "\n";
+        }
+
+        // Send to Python
+        try (Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(java_to_python), "utf-8"))) {
+            writer.write(csv);
+        } catch (IOException ex) {
+            // report
+            System.out.println("Could not write to file");
+        }
+
+        // Wait for Response (Python to Java file is not empty)
+        while(true){
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if(new File(python_to_java).length() != 0){
+                break;
+            }
+        }
+        // Read Response (Index of Best Move)
+        String bestMove = "";
+        try (BufferedReader br = new BufferedReader(new FileReader(python_to_java))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                bestMove = line;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Return Best Move
+        return availableMoves[Integer.parseInt(bestMove)];
+    }
 
     // Transfer Format: See save_format.txt
 
