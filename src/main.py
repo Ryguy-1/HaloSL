@@ -93,7 +93,8 @@ def train(cnn = None, data_loader = None, test_loader = None, epochs = 100):
             step+=1
         
         data_loader.reset() # Artificial Reset to Make Sure
-
+        print("End of epoch %d" % (epoch,))
+        
 
 
 if __name__ == "__main__":

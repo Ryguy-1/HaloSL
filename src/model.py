@@ -11,6 +11,7 @@ import tensorflow.keras.utils as utils
 class CNN:
 
     # Random -> Base = 50.89% -> 66.89% max -> 65 after roughly 20% of data
+    # Saved: 'model' = 66.7% accurate -> Location: Blue Desktop
 
     java_to_python = 'communication_gateway/java_to_python.txt'
     python_to_java = 'communication_gateway/python_to_java.txt'
