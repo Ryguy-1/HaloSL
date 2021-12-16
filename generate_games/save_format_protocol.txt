@@ -1,0 +1,9 @@
+Save Format is as Follows: (Java)
+1) Take a game in Java and convert each individual board of 12 bitboards to a string:
+    a) 768 bits (12 x 8 x 8)
+2) Get winner ('c' or 'l')
+3) Save each one of these strings and the winner to a csv file we can then load and train on later
+
+Load Format is as Follows: (Python)
+1) Take the game string from the csv and the winner.
+2) Convert the game string to a 3 dimensional tensor of 12 x 8 x 8 for training
