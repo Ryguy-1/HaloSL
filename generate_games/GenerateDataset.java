@@ -11,6 +11,7 @@ import java.io.Writer;
 import java.io.File;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
 
 public class GenerateDataset {
 
@@ -221,6 +222,16 @@ public class GenerateDataset {
             e.printStackTrace();
         }
 
+        // Delete Information in File
+        try {
+            FileWriter f2 = new FileWriter(python_to_java, false);
+            f2.write("");
+            f2.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }          
+
+        System.out.println("Best Move From Java: " + bestMove);
         // Return Best Move
         return availableMoves[Integer.parseInt(bestMove)];
     }

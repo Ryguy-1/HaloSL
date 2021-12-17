@@ -15,8 +15,13 @@ public class Runner {
         search = new Search();
         // Longest chess game known to be 269 moves -> 250 good
         // (int numGames, int maxMovesUntilStalemate, int startIndex, int numGamesPerBatch)
-        generateDataset = new GenerateDataset(1000000, 500, 659, 100);
-        // GenerateDataset.chooseMoveCNN(Runner.search.getPossibleMovesByCasing(Runner.mainBoard.mainPosition, 'c'), 'c');
-
+        // generateDataset = new GenerateDataset(1000000, 500, 0, 100);
+        // GenerateDataset.chooseMoveCNN(Runner.search.getPossibleMovesByCasing(Runner.mainBoard.mainPosition, 'l'), 'l');
+        String thisPosition = "";
+        // Runner.mainBoard.mainPosition.fromToMove("e2e4");
+        for (int i = 0; i < 12; i++){
+            thisPosition += Runner.mainBoard.parseString(Runner.mainBoard.mainPosition.getCurrentBoard()[i]);
+        }
+        System.out.println(thisPosition);
     }
 }

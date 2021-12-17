@@ -2,6 +2,7 @@ from data_loader import DataLoader
 from model import CNN
 import tensorflow as tf
 import numpy as np
+from java_interaction import HaloJavaInteraction
 
 # Local Hyperparameter(s)
 test_percentage = 0.1
@@ -96,9 +97,28 @@ def train(cnn = None, data_loader = None, test_loader = None, epochs = 100):
         print("End of epoch %d" % (epoch,))
         
 
+def java_response():
+    java_interaction = HaloJavaInteraction(poll_time_ms=1, model_name='model')
+
+def test_position():
+    cnn = CNN()
+    cnn.load_model()
+    board_string = "100000010000000000000000000000000000000000000000000000000000000001000010000000000000000000000000000000000000000000000000000000000010010000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000011111001000000000000011000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000100000000000000000000000000000000000000000000000000000000010000100000000000000000000000000000000000000000000000000000000000100100000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000001000000000001111011100000000"
+    tensor = cnn.convert_string_to_tensor(board_string)
+    tensor = np.array(tensor)
+    tensor = tf.expand_dims(tensor, 0)
+    print(tensor)
+    prediction = cnn.model.predict(tf.convert_to_tensor(tensor))
+    print(prediction)
 
 if __name__ == "__main__":
-    main()
+    # main()
     # cnn = CNN()
-    # cnn.save_model()
+    # cnn.load_model()
     # cnn.make_prediction_from_java() # Working properly. I believe java is almost working properly if not working properly already.
+    # java_response()
+    test_position()
+
+
+
+
